@@ -424,6 +424,8 @@
             renderScoreInputs();
         }
 
+        function clearScore(i) { var el = document.getElementById("gscore-" + i); if(el) el.value = ""; }
+
         function renderScoreInputs() {
             var el = document.getElementById('score-inputs');
             var html = ''; var count = 0;
@@ -432,7 +434,7 @@
                 if (chk && chk.checked) {
                     html += '<div class="score-row"><label>' + members[i].name + '（ハンデ: ' + members[i].hc + '）</label>';
                     html += '<input type="number" id="gscore-' + i + '" placeholder="スコア"/>';
-                    html += '<button class="danger small" onclick="document.getElementById(\"gscore-' + i + '\").value=\'\'">✕</button></div>';
+                    html += '<button class="danger small" onclick="clearScore(' + i + ')">✕</button></div>';
                     count++;
                 }
             }
