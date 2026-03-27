@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ゴルフスコア管理V18</title>
+    <title>ゴルフスコア管理V19</title>
     <style>
         body {
             font-family: "Meiryo", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
@@ -240,7 +240,7 @@
 </head>
 
 <body>
-    <h1>⛳ ゴルフスコア管理V18</h1>
+    <h1>⛳ ゴルフスコア管理V19</h1>
 
     <div class="tab">
           <button class="active" onclick="showTab('members')" id="tab-btn-members">👥 メンバー</button>
@@ -256,7 +256,10 @@
 田中 12
 鈴木, 18
 城山廣三 15 川本芳樹 16"></textarea>
-                <button onclick="bulkAdd()">📋 一括登録</button>
+                <div style="display:flex;gap:8px;">
+                <button onclick="bulkAdd()">📋 一括登録</button>
+                <button class="danger" style="width:auto;padding:12px 16px;" onclick="document.getElementById('bulk-input').value=''">🗑 クリア</button>
+                </div>
               </div>
           <div class="card">
                 <h2>1人ずつ登録</h2>
@@ -287,7 +290,10 @@
 田中 92
 鈴木, 88
 山田 101 城山 95"></textarea>
-                <button onclick="pasteAndCalc()">🏆 計算する</button>
+                <div style="display:flex;gap:8px;">
+                <button onclick="pasteAndCalc()">🏆 計算する</button>
+                <button class="danger" style="width:auto;padding:12px 16px;" onclick="document.getElementById('score-paste').value=''">🗑 クリア</button>
+                </div>
               </div>
           <div class="card">
                 <h2>③ 手入力でスコアを入力</h2>
@@ -425,7 +431,8 @@
                 var chk = document.getElementById('chk-' + i);
                 if (chk && chk.checked) {
                     html += '<div class="score-row"><label>' + members[i].name + '（ハンデ: ' + members[i].hc + '）</label>';
-                    html += '<input type="number" id="gscore-' + i + '" placeholder="スコア"/></div>';
+                    html += '<input type="number" id="gscore-' + i + '" placeholder="スコア"/>';
+                    html += '<button class="danger small" onclick="document.getElementById(\"gscore-' + i + '\").value=\'\'">✕</button></div>';
                     count++;
                 }
             }
