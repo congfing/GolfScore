@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゴルフスコア管理V19</title>
+    <style>
+        body {
+            font-family: "Meiryo", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 16px;
+            background: #f0f7f0;
+        }
+
+        h1 {
+            color: #2d6a2d;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        h2 {
+            color: #2d6a2d;
+            margin-top: 0;
+            font-size: 17px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type=text],
+        input[type=number],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 4px 0 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2d6a2d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        button.sub {
+            background: #888;
+        }
+
+        button.danger {
+            background: #c0392b;
+        }
+
+        button.accent {
+            background: #1a6fa8;
+        }
+
+        button.small {
+            width: auto;
+            padding: 6px 14px;
+            font-size: 14px;
+        }
+
+        .member-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .member-row label {
+            flex: 1;
+            font-size: 15px;
+        }
+
+        .edit-area {
+            display: none;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 6px;
+        }
+
+        .tab {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .tab button {
+            background: #ddd;
+            color: #333;
+            font-size: 13px;
+            padding: 10px 6px;
+        }
+
+        .tab button.active {
+            background: #2d6a2d;
+            color: white;
+        }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .score-row label {
+            flex: 1;
+            font-size: 15px;
+        }
+
+        .score-row input {
+            width: 80px;
+            margin: 0;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rank {
+            font-size: 24px;
+            width: 36px;
+            text-align: center;
+        }
+
+        .rname {
+            font-size: 17px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .scores {
+            text-align: right;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .net {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2d6a2d;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #888;
+            margin: 0 0 8px;
+        }
+
+        .history-item {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .history-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #2d6a2d;
+        }
+
+        .history-meta {
+            font-size: 12px;
+            color: #888;
+            margin: 2px 0 8px;
+        }
+
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 3px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-row:last-child {
+            border-bottom: none;
+        }
+
+        .del-confirm {
+            display: none;
+            background: #fff0f0;
+            border: 1px solid #c0392b;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .del-confirm p {
+            margin: 0 0 8px;
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .del-confirm-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .del-confirm-btns button {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>⛳ ゴルフスコア管理V19</h1>
+
+    <div class="tab">
+          <button class="active" onclick="showTab('members')" id="tab-btn-members">👥 メンバー</button>
+          <button onclick="showTab('score')" id="tab-btn-score">🏆 スコア入力</button>
+          <button onclick="showTab('history')" id="tab-btn-history">📋 履歴</button>
+    </div>
+
+    <div id="tab-members">
+          <div class="card">
+                <h2>一括登録（貼り付け）</h2>
+                <p class="hint">縦書き・横書き・カンマあり・なし、どの形式でもOK</p>
+                <textarea id="bulk-input" placeholder="例：
+田中 12
+鈴木, 18
+城山廣三 15 川本芳樹 16"></textarea>
+                <div style="display:flex;gap:8px;">
+                <button onclick="bulkAdd()">📋 一括登録</button>
+                <button class="danger" style="width:auto;padding:12px 16px;" onclick="document.getElementById('bulk-input').value=''">🗑 クリア</button>
+                </div>
+              </div>
+          <div class="card">
+                <h2>1人ずつ登録</h2>
+                <input id="inp-name" placeholder="名前" type="text" />
+                <input id="inp-hc" placeholder="ハンデ（例: 12）" type="number" />
+                <button onclick="addMember()">＋ 追加して保存</button>
+              </div>
+          <div class="card">
+                <h2>登録メンバー一覧</h2>
+                <div id="member-list">
+                <p style="color:#888">まだ登録されていません</p>
+            </div>
+                <button class="danger" onclick="clearMembers()" style="margin-top:12px;">🗑 全員削除</button>
+              </div>
+    </div>
+
+    <div id="tab-score" style="display:none;">
+          <div class="card">
+                <h2>① 本日の参加者を選択</h2>
+                <div id="participant-list">
+                <p style="color:#888">メンバーを登録してください</p>
+            </div>
+              </div>
+          <div class="card">
+                <h2>② スコアを貼り付けて計算</h2>
+                <p class="hint">名前とスコアを貼り付けて「🏆 計算する」を押すと順位が表示されます</p>
+                <textarea id="score-paste" placeholder="例：
+田中 92
+鈴木, 88
+山田 101 城山 95"></textarea>
+                <div style="display:flex;gap:8px;">
+                <button onclick="pasteAndCalc()">🏆 計算する</button>
+                <button class="danger" style="width:auto;padding:12px 16px;" onclick="document.getElementById('score-paste').value=''">🗑 クリア</button>
+                </div>
+              </div>
+          <div class="card">
+                <h2>③ 手入力でスコアを入力</h2>
+                <div id="score-inputs">
+                <p style="color:#888">参加者を選択してください</p>
+            </div>
+                <button onclick="calcResults()" style="margin-top:12px;">🏆 順位を計算する</button>
+              </div>
+          <div id="results"></div>
+    </div>
+
+    <div id="tab-history" style="display:none;">
+          <div class="card">
+                <h2>📋 コンペ履歴</h2>
+                <div id="history-list">
+                <p style="color:#888">まだ記録がありません</p>
+            </div>
+                <button class="danger" onclick="clearHistory()" style="margin-top:12px;">🗑 履歴を全削除</button>
+              </div>
+    </div>
+
+    <script>
+        var members = JSON.parse(localStorage.getItem('golf_members') || '[]');
+        var compHistory = JSON.parse(localStorage.getItem('golf_history') || '[]');
+        var lastResults = [];
+
+        function save() { localStorage.setItem('golf_members', JSON.stringify(members)); }
+        function saveHist() { localStorage.setItem('golf_history', JSON.stringify(compHistory)); }
+
+        function showTab(tab) {
+            ['members', 'score', 'history'].forEach(function (t) {
+                document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+                document.getElementById('tab-btn-' + t).className = t === tab ? 'active' : '';
+            });
+            if (tab === 'score') renderParticipants();
+            if (tab === 'history') renderHistory();
+        }
+
+        function parseNameNumPairs(text) {
+            var normalized = text.replace(/,/g, ' ').replace(/　/g, ' ').replace(/\n/g, ' ');
+            var tokens = normalized.split(/\s+/).filter(function (t) { return t.length > 0; });
+            var pairs = [];
+            var i = 0;
+            while (i < tokens.length) {
+                var token = tokens[i];
+                var num = parseInt(tokens[i + 1]);
+                if (isNaN(parseInt(token)) && i + 1 < tokens.length && !isNaN(num)) {
+                    pairs.push({ name: token, num: num }); i += 2;
+                } else { i++; }
+            }
+            return pairs;
+        }
+
+        function bulkAdd() {
+            var text = document.getElementById('bulk-input').value.trim();
+            if (!text) { alert('テキストを入力してください'); return; }
+            var pairs = parseNameNumPairs(text);
+            var added = 0;
+            pairs.forEach(function (p) {
+                if (!members.find(function (m) { return m.name === p.name; })) {
+                    members.push({ name: p.name, hc: p.num }); added++;
+                }
+            });
+            if (added === 0) { alert('登録できるデータが見つかりませんでした。'); return; }
+            save();
+            document.getElementById('bulk-input').value = '';
+            renderMembers();
+            alert(added + '人を登録しました！');
+        }
+
+        function addMember() {
+            var name = document.getElementById('inp-name').value.trim();
+            var hc = parseInt(document.getElementById('inp-hc').value);
+            if (!name || isNaN(hc)) { alert('名前とハンデを入力してください'); return; }
+            if (members.find(function (m) { return m.name === name; })) { alert('同じ名前がすでに登録されています'); return; }
+            members.push({ name: name, hc: hc }); save();
+            document.getElementById('inp-name').value = '';
+            document.getElementById('inp-hc').value = '';
+            renderMembers();
+        }
+
+        function renderMembers() {
+            var el = document.getElementById('member-list');
+            if (!members.length) { el.innerHTML = '<p style="color:#888">まだ登録されていません</p>'; return; }
+            var html = '';
+            for (var i = 0; i < members.length; i++) {
+                html += '<div class="member-row"><label>👤 <strong>' + members[i].name + '</strong>（ハンデ: ' + members[i].hc + '）</label>';
+                html += '<button class="sub small" onclick="toggleEdit(' + i + ')">✏️ 編集</button>';
+                html += '<button class="danger small" onclick="deleteMember(' + i + ')">削除</button></div>';
+                html += '<div class="edit-area" id="edit-' + i + '">';
+                html += '<input type="text" id="edit-name-' + i + '" value="' + members[i].name + '" placeholder="名前"/>';
+                html += '<input type="number" id="edit-hc-' + i + '" value="' + members[i].hc + '" placeholder="ハンデ"/>';
+                html += '<button onclick="saveMember(' + i + ')">💾 保存</button></div>';
+            }
+            el.innerHTML = html;
+        }
+
+        function toggleEdit(i) {
+            var el = document.getElementById('edit-' + i);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function saveMember(i) {
+            var name = document.getElementById('edit-name-' + i).value.trim();
+            var hc = parseInt(document.getElementById('edit-hc-' + i).value);
+            if (!name || isNaN(hc)) { alert('名前とハンデを入力してください'); return; }
+            members[i] = { name: name, hc: hc }; save(); renderMembers(); alert('更新しました！');
+        }
+
+        function deleteMember(i) {
+            members.splice(i, 1); save(); renderMembers();
+        }
+
+        function clearMembers() {
+            members = []; save(); renderMembers();
+        }
+
+        function renderParticipants() {
+            var el = document.getElementById('participant-list');
+            if (!members.length) { el.innerHTML = '<p style="color:#888">メンバーを登録してください</p>'; return; }
+            var html = '';
+            for (var i = 0; i < members.length; i++) {
+                html += '<div class="member-row">';
+                html += '<input type="checkbox" id="chk-' + i + '" checked style="width:auto;margin:0;" onchange="renderScoreInputs()"/>';
+                html += '<label for="chk-' + i + '">👤 ' + members[i].name + '（ハンデ: ' + members[i].hc + '）</label></div>';
+            }
+            el.innerHTML = html;
+            renderScoreInputs();
+        }
+
+        function renderScoreInputs() {
+            var el = document.getElementById('score-inputs');
+            var html = ''; var count = 0;
+            for (var i = 0; i < members.length; i++) {
+                var chk = document.getElementById('chk-' + i);
+                if (chk && chk.checked) {
+                    html += '<div class="score-row"><label>' + members[i].name + '（ハンデ: ' + members[i].hc + '）</label>';
+                    html += '<input type="number" id="gscore-' + i + '" placeholder="スコア"/>';
+                    html += '<button class="danger small" onclick="document.getElementById(\"gscore-' + i + '\").value=\'\'">✕</button></div>';
+                    count++;
+                }
+            }
+            if (!count) { el.innerHTML = '<p style="color:#888">参加者を選択してください</p>'; return; }
+            el.innerHTML = html;
+        }
+
+        function showResults(results) {
+            lastResults = results;
+            var medals = ['🥇', '🥈', '🥉'];
+            var html = '<div class="card"><h2>🏆 順位結果</h2>';
+            for (var i = 0; i < results.length; i++) {
+                var r = results[i];
+                html += '<div class="result-card"><div class="rank">' + (medals[i] || (i + 1) + '位') + '</div>';
+                html += '<div class="rname">' + r.name + '</div>';
+                html += '<div class="scores">グロス: ' + r.gross + '<br>ハンデ: ' + r.hc + '<br><span class="net">ネット: ' + r.net + '</span></div></div>';
+            }
+            html += '<div style="margin-top:16px;">';
+            html += '<p style="font-size:14px;color:#2d6a2d;font-weight:bold;margin:0 0 6px;">📝 この結果を記録する</p>';
+            html += '<input type="text" id="comp-name" placeholder="コンペ名（例：月例杯）"/>';
+            html += '<input type="text" id="comp-course" placeholder="ゴルフ場名（例：グリーンハイランドCC）"/>';
+            html += '<button class="accent" onclick="recordHistory()">📝 記録する</button>';
+            html += '</div></div>';
+            document.getElementById('results').innerHTML = html;
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function pasteAndCalc() {
+            var text = document.getElementById('score-paste').value.trim();
+            if (!text) { alert('スコアを入力してください'); return; }
+            var pairs = parseNameNumPairs(text);
+            if (!pairs.length) { alert('スコアが読み取れませんでした。'); return; }
+            var results = [];
+            pairs.forEach(function (p) {
+                var member = members.find(function (m) { return m.name === p.name; });
+                if (member) results.push({ name: member.name, hc: member.hc, gross: p.num, net: p.num - member.hc });
+            });
+            if (!results.length) { alert('登録済みメンバーと一致する名前が見つかりませんでした。'); return; }
+            results.sort(function (a, b) { return a.net - b.net; });
+            showResults(results);
+        }
+
+        function calcResults() {
+            var results = [];
+            for (var i = 0; i < members.length; i++) {
+                var chk = document.getElementById('chk-' + i);
+                if (chk && chk.checked) {
+                    var gross = parseInt(document.getElementById('gscore-' + i).value);
+                    if (!isNaN(gross)) results.push({ name: members[i].name, hc: members[i].hc, gross: gross, net: gross - members[i].hc });
+                }
+            }
+            if (!results.length) { alert('スコアを入力してください'); return; }
+            results.sort(function (a, b) { return a.net - b.net; });
+            showResults(results);
+        }
+
+        function recordHistory() {
+            var compName = document.getElementById('comp-name').value.trim() || 'コンペ';
+            var compCourse = document.getElementById('comp-course').value.trim() || '未入力';
+            var today = new Date().toLocaleDateString('ja-JP');
+            compHistory.unshift({ name: compName, course: compCourse, date: today, results: lastResults });
+            saveHist();
+            alert('「' + compName + '」の結果を記録しました！');
+            renderHistory();
+        }
+
+        function showDelConfirm(i) {
+            // 全ての確認欄を非表示
+            var all = document.querySelectorAll('.del-confirm');
+            for (var j = 0; j < all.length; j++) all[j].style.display = 'none';
+            // 対象の確認欄を表示
+            document.getElementById('del-confirm-' + i).style.display = 'block';
+        }
+
+        function execDeleteHistory(i) {
+            compHistory.splice(i, 1);
+            saveHist();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            var el = document.getElementById('history-list');
+            if (!compHistory.length) { el.innerHTML = '<p style="color:#888">まだ記録がありません</p>'; return; }
+            var medals = ['🥇', '🥈', '🥉'];
+            var html = '';
+            for (var hi = 0; hi < compHistory.length; hi++) {
+                var h = compHistory[hi];
+                html += '<div class="history-item">';
+                html += '<div class="history-title">🏆 ' + h.name + '</div>';
+                html += '<div class="history-meta">📅 ' + h.date + '　⛳ ' + h.course + '</div>';
+                for (var i = 0; i < h.results.length; i++) {
+                    var r = h.results[i];
+                    html += '<div class="history-row"><span>' + (medals[i] || ((i + 1) + '位')) + ' ' + r.name + '</span>';
+                    html += '<span>グロス:' + r.gross + ' ハンデ:' + r.hc + ' <strong>ネット:' + r.net + '</strong></span></div>';
+                }
+                html += '<button class="danger small" style="margin-top:8px;" onclick="showDelConfirm(' + hi + ')">🗑 この記録を削除</button>';
+                html += '<div class="del-confirm" id="del-confirm-' + hi + '">';
+                html += '<p>「' + h.name + '」を削除しますか？</p>';
+                html += '<div class="del-confirm-btns">';
+                html += '<button class="danger" onclick="execDeleteHistory(' + hi + ')">はい、削除する</button>';
+                html += '<button class="sub" onclick="document.getElementById(\'del-confirm-' + hi + '\').style.display=\'none\'">キャンセル</button>';
+                html += '</div></div>';
+                html += '</div>';
+            }
+            el.innerHTML = html;
+        }
+
+        function clearHistory() {
+            compHistory = []; saveHist(); renderHistory();
+        }
+
+        renderMembers();
+    </script>
+</body>
+
+</html>
